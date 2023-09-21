@@ -6,7 +6,8 @@
 
 from typing import Union
 import evdev
-import pyautogui
+from pynput.mouse import Controller, Button
+import keyboard
 import argparse
 import time
 
@@ -15,13 +16,13 @@ import time
 # For an action, write the line like this>>> 'LEFT_PRESS': (lambda: pyautogui.keyDown('F2')),
 # For no action, write the line like this>>> 'LEFT_RELEASE': None,
 button_actions = {
-	'LEFT_PRESS': (lambda: pyautogui.keyDown('F2')),
-	'LEFT_RELEASE': (lambda: pyautogui.keyUp('F2')),
+	'LEFT_PRESS': (lambda: keyboard.press('F2')),
+	'LEFT_RELEASE': (lambda: keyboard.release('F2')),
 
-	'MIDDLE_PRESS': (lambda: pyautogui.click()),
+	'MIDDLE_PRESS': (lambda: Controller().click(Button.left, 1)),
 	'MIDDLE_RELEASE': None,
 
-	'RIGHT_PRESS': (lambda: pyautogui.click()),
+	'RIGHT_PRESS': (lambda: Controller().click(Button.left, 1)),
 	'RIGHT_RELEASE': None,
 }
 #####################################################
