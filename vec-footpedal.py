@@ -1,36 +1,19 @@
 #!/usr/bin/env python3
 
+# TODO: launch automatically
+# TODO: don't require root
+# TODO: argparse option for debug or forcing the device path
 
+from typing import Union
 import evdev
 import pyautogui
+import argparse
+import time
 
-VENDOR_ID = 0x05f3
-PRODUCT_ID = 0xff
-VERSION_ID = 0x100
-
-DEBUG_MODE = True
-
-def get_event_path_for_correct_device() -> str:
-	""" Select the right /dev/input/eventX device. """
-	return '/dev/input/event9' # FIXME: select the right one automatically
-
-# Trigger Event Codes: LEFT=256, MIDDLE=257, RIGHT=258
-# Trigger Event Values: 1=press, 0=release
-
-trigger_event_codes = { # keys are codes, values are button names
-	256: 'LEFT',
-	257: 'MIDDLE',
-	258: 'RIGHT',
-}
-
-trigger_event_values = { # keys are codes, values are actions
-	1: 'PRESS',
-	0: 'RELEASE',
-}
-
+############## Define your actions here ##############
 # Common Options: pyautogui.click(), pyautogui.keyDown(), pyautogui.keyUp(), pyautogui.press() [down and up]
-# For an action, write the line like this -> 'LEFT_PRESS': (lambda: pyautogui.keyDown('F2')),
-# For no action, write the line like this -> 'LEFT_RELEASE': None,
+# For an action, write the line like this>>> 'LEFT_PRESS': (lambda: pyautogui.keyDown('F2')),
+# For no action, write the line like this>>> 'LEFT_RELEASE': None,
 button_actions = {
 	'LEFT_PRESS': (lambda: pyautogui.keyDown('F2')),
 	'LEFT_RELEASE': (lambda: pyautogui.keyUp('F2')),
@@ -40,6 +23,45 @@ button_actions = {
 
 	'RIGHT_PRESS': (lambda: pyautogui.click()),
 	'RIGHT_RELEASE': None,
+}
+#####################################################
+
+VENDOR_ID = 0x05f3
+PRODUCT_ID = 0xff
+VERSION_ID = 0x100
+
+DEBUG_MODE = True
+
+def find_device_path(vendor_id: int, product_id: int, version_id: int) -> Union[str, None]:
+	devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
+	for device in devices:
+		dev_info = device.info
+
+		if (dev_info.vendor == vendor_id and dev_info.product == product_id and dev_info.version == version_id):
+			return device.fn
+
+	return None
+
+def get_event_path_for_correct_device() -> str:
+	""" Select the right /dev/input/eventX device.
+	Returns a file path like '/dev/input/event9'. Retries if device not found.
+	"""
+	while (event_dev_path := find_device_path(VENDOR_ID, PRODUCT_ID, VERSION_ID)) is None:
+		print(f"No device found. Trying again in 1 second...")
+		time.sleep(1)
+
+	return event_dev_path
+
+# Trigger Event Codes: LEFT=256, MIDDLE=257, RIGHT=258
+trigger_event_codes = { # keys are codes, values are button names
+	256: 'LEFT',
+	257: 'MIDDLE',
+	258: 'RIGHT',
+}
+# Trigger Event Values: 1=press, 0=release
+trigger_event_values = { # keys are codes, values are actions
+	1: 'PRESS',
+	0: 'RELEASE',
 }
 
 def main():
