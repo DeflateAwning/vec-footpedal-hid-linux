@@ -31,6 +31,7 @@ PRODUCT_ID = 0xff
 VERSION_ID = 0x100
 
 DEBUG_MODE = True
+RETRY_DELAY_SECONDS = 5
 
 def find_device_path(vendor_id: int, product_id: int, version_id: int) -> Union[str, None]:
 	devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
@@ -47,8 +48,8 @@ def get_event_path_for_correct_device() -> str:
 	Returns a file path like '/dev/input/event9'. Retries if device not found.
 	"""
 	while (event_dev_path := find_device_path(VENDOR_ID, PRODUCT_ID, VERSION_ID)) is None:
-		print(f"No device found. Trying again in 1 second...")
-		time.sleep(1)
+		print(f"No device found or permission denied. Trying again in {RETRY_DELAY_SECONDS} seconds...")
+		time.sleep(RETRY_DELAY_SECONDS)
 
 	return event_dev_path
 
