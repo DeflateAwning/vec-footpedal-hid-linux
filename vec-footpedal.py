@@ -38,7 +38,7 @@ def find_device_path(vendor_id: int, product_id: int, version_id: int) -> Union[
 		dev_info = device.info
 
 		if (dev_info.vendor == vendor_id and dev_info.product == product_id and dev_info.version == version_id):
-			return device.fn
+			return device.path
 
 	return None
 
@@ -65,13 +65,13 @@ trigger_event_values = { # keys are codes, values are actions
 }
 
 def main():
+	
 	# Get the path to the device's event thingy
 	event_path = get_event_path_for_correct_device()
 	print(f"Using event path: '{event_path}'")
 
 	# Create an InputDevice object for your HID device
 	device = evdev.InputDevice(event_path)
-
 	for event in device.read_loop():
 		try:
 			if event.type == evdev.ecodes.EV_KEY:
@@ -92,7 +92,13 @@ def main():
 					print(f"Event: event.type={event.type}, event.code={event.code}, event.value={event.value}, event_name={event_name}, event_event={event_event}, event_action={event_action}")
 		
 		except Exception as e:
-			print(f"Error: {e}")
+			print(f"Error in loop: {e}")
 
 if __name__ == '__main__':
-	main()
+	while 1:
+		print(f"Starting...")
+
+		try:
+			main()
+		except KeyboardInterrupt:
+			break
